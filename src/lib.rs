@@ -1,10 +1,14 @@
-use axum::{Router, routing::get};
-
 pub mod config;
+pub mod error;
+
+use axum::{Router, routing::get};
+use error::AppError;
 
 // router tek bir yerde kuruyoruz, hem main hem de test dosyaları aynı router kullanabilir.
 pub fn build_router() -> Router {
-    Router::new().route("/health", get(health))
+    Router::new()
+        .route("/health", get(health))
+        .fallback(not_found)
 }
 
 pub fn load_env() {
@@ -14,4 +18,8 @@ pub fn load_env() {
 // handlers/health.rs içerisine taşınacak
 async fn health() -> &'static str {
     "ok"
+}
+
+async fn not_found() -> AppError {
+    AppError::NotFound("route not found.".into())
 }

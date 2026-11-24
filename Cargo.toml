@@ -5,11 +5,16 @@ edition = "2024"
 
 [dependencies]
 # Web framework ve async runtime
-axum = "0.8"
+axum = { version = "0.8", features = ["macros"] }
 tokio = { version = "1", features = ["full"] }
 
 # Middleware: logging, timeout, panic yakalama, request-id
-tower-http = { version = "0.6", features = ["trace", "timeout", "catch-panic", "request-id"] }
+tower-http = { version = "0.6", features = [
+    "trace",
+    "timeout",
+    "catch-panic",
+    "request-id",
+] }
 
 # JSON serileştirme
 serde = { version = "1", features = ["derive"] }
