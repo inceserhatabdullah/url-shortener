@@ -4,3 +4,37 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# Web framework ve async runtime
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+
+# Middleware: logging, timeout, panic yakalama, request-id
+tower-http = { version = "0.6", features = ["trace", "timeout", "catch-panic", "request-id"] }
+
+# JSON serileştirme
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Hata yönetimi
+thiserror = "2"
+# URL doğrulama
+url = "2"
+# Rastgele kısa kod üretimi
+rand = "0.9"
+# .env dosyasından konfigürasyon
+dotenvy = "0.15"
+# Repository trait'i için async desteği
+async-trait = "0.1"
+
+# Loglama
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Zaman damgası ve request-id için
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+# Testlerde router'ı port açmadan çağırmak için (oneshot)
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
