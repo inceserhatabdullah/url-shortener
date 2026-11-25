@@ -51,7 +51,7 @@ impl Config {
     }
 
     // değerleri verilen fonksiyondan okur, testlerde kaynak verebilmek için ayrı tutuldu; global ortama dokunmak gerekmez.
-    fn from_lookup<F>(lookup: F) -> Result<Self, ConfigError>
+    pub fn from_lookup<F>(lookup: F) -> Result<Self, ConfigError>
     where
         F: Fn(&str) -> Option<String>,
     {
