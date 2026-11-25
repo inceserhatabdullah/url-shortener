@@ -2,6 +2,7 @@ pub mod config;
 pub mod error;
 pub mod models;
 pub mod validation;
+pub mod repository;
 
 use axum::{Router, routing::get};
 use error::AppError;
