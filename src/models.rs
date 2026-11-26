@@ -50,6 +50,14 @@ impl LinkResponse {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct ListResponse {
+    pub items: Vec<LinkResponse>,
+    pub total: usize,
+    pub offset: usize,
+    pub limit: usize,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
