@@ -23,10 +23,10 @@ impl JsonFileRepo {
     pub async fn open(path: impl Into<PathBuf>) -> AppResult<Self> {
         let path = path.into();
 
-        if let Some(parent) = path.parent() {
-            if !parent.as_os_str().is_empty() {
-                tokio::fs::create_dir_all(parent).await?;
-            }
+        if let Some(parent) = path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            tokio::fs::create_dir_all(parent).await?;
         }
 
         let links = match tokio::fs::read(&path).await {

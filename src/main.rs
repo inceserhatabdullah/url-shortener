@@ -20,6 +20,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_tracing();
 
     let config = Config::from_env()?;
+    tracing::info!(config=%&config.summary(), "configuration loaded");
+
     let repo: Arc<dyn UrlRepository> = match config.storage {
         StorageKind::JsonFile => {
             tracing::info!(file=%config.data_file.display(), "storage: json file");
@@ -61,6 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn init_tracing() {
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("url_shortener=debug,tower_http=info,axum=info"));
+
     tracing_subscriber::registry()
         .with(filter)
         .with(fmt::layer())

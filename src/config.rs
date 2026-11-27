@@ -50,6 +50,17 @@ impl Config {
         Self::from_lookup(|key| std::env::var(key).ok())
     }
 
+    pub fn summary(&self) -> String {
+        format!(
+            "addr={} base_url={} storage={:?} code_len={} timeout={}s",
+            self.socket_addr(),
+            self.base_url,
+            self.storage,
+            self.short_code_length,
+            self.request_timeout_secs
+        )
+    }
+
     // değerleri verilen fonksiyondan okur, testlerde kaynak verebilmek için ayrı tutuldu; global ortama dokunmak gerekmez.
     pub fn from_lookup<F>(lookup: F) -> Result<Self, ConfigError>
     where

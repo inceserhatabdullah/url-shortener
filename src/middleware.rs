@@ -3,7 +3,9 @@ use std::{any::Any, time::Duration};
 use axum::{
     Router,
     body::Body,
+    extract::DefaultBodyLimit,
     http::{Request, Response, StatusCode, header},
+    middleware::map_response,
 };
 use tower_http::{
     catch_panic::CatchPanicLayer,
@@ -32,6 +34,10 @@ Bunları middleware ile yönetmek, kodun bakımını ve genişletilmesini kolayl
 */
 // istek kimliği başlığı
 pub const REQUEST_ID_HEADER: &str = "x-request-id";
+// istek gövdesi için üst sınır.
+pub const MAX_BODY_BYTES: usize = 16 * 1024;
+const INTERNAL_ERROR_CODE: &str = "internal_error";
+const TIMEOUT_ERROR_CODE: &str = "request_timeout";
 
 /* Axum'da en son eklenen layer, request'in ilk karşılaştığı (en dış) katmandır.
 
@@ -75,6 +81,9 @@ pub fn apply_middleware(router: Router, request_timeout: Duration) -> Router {
             StatusCode::REQUEST_TIMEOUT,
             request_timeout,
         ))
+        // 408 yanıtının gövdesi json hata gövdesi ile değiştirir
+        .layer(map_response(timeout_to_json))
+        .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))
         // handler panicleri 500 json yanıtına çevirir (sunucu çökmez). İç servislerde meydana gelebilecek panic'leri yakalamaya çalışır.
         .layer(CatchPanicLayer::custom(handle_panic))
         // Request ID'nin response'a aktarılmasını sağlar.
@@ -124,14 +133,32 @@ fn handle_panic(err: Box<dyn Any + Send + 'static>) -> Response<Body> {
     // Burada %details, tracing'e değeri Display formatında yazdırmasını söyler.
     tracing::error!(panic = %details, "handler panicked");
 
-    let body = serde_json::json!({
-       "error": {"code": "internal_error", "message": "Internal server error"}
-    });
+    json_error(
+        StatusCode::INTERNAL_SERVER_ERROR,
+        INTERNAL_ERROR_CODE,
+        "internal server error",
+    )
+}
 
-    // Builder Pattern: Bir nesneyi, özelliklerini adım adım belirleyerek oluşturma yaklaşımı.
+// ortak json yanıtı ({"error": {"code", "message"}})
+fn json_error(status: StatusCode, code: &str, message: &str) -> Response<Body> {
+    let body = serde_json::json!({"error": {"code": code, "message": message }});
+
     Response::builder()
-        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .status(status)
         .header(header::CONTENT_TYPE, "application/json")
         .body(Body::from(body.to_string()))
         .expect("static response must be valid")
+}
+
+// Handler'larımız hiçbir zaman 408 üretmez; 408 görürsek bu timeout katmanıdır
+async fn timeout_to_json(response: Response<Body>) -> Response<Body> {
+    if response.status() == StatusCode::REQUEST_TIMEOUT {
+        return json_error(
+            StatusCode::REQUEST_TIMEOUT,
+            TIMEOUT_ERROR_CODE,
+            "request timed out",
+        );
+    }
+    response
 }
