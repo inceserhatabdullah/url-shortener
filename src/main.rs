@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 use url_shortener::{
     build_router,
     config::{Config, StorageKind},
@@ -14,6 +15,7 @@ use url_shortener::{
 async fn main() {
     load_env();
 
+    init_tracing();
     let config = Config::from_env().unwrap_or_else(|err| {
         eprintln!("Configuration error: {err}");
         std::process::exit(1);
@@ -42,4 +44,13 @@ async fn main() {
     println!("server listening on {addr}");
 
     axum::serve(listener, app).await.expect("server error");
+}
+
+fn init_tracing() {
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("url_shortener=debug,tower_http=info,axum=info"));
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(fmt::layer())
+        .init();
 }
