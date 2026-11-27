@@ -2,9 +2,11 @@ use async_trait::async_trait;
 use std::collections::HashMap;
 use tokio::sync::RwLock;
 
-use super::UrlRepository;
-use crate::error::{AppError, AppResult};
-use crate::models::Link;
+use crate::{
+    error::{AppError, AppResult},
+    models::Link,
+    repository::UrlRepository,
+};
 
 // süreç bellekte tutulur, uygulama kapanınca veri kaybolur.
 #[derive(Debug, Default)]
